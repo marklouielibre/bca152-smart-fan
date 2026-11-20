@@ -7,3 +7,5 @@
 tmp/private.pem.key
 tmp/certificate.pem.crt
 aws/function.zip
+
+.vscode/
