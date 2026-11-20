@@ -9,3 +9,5 @@ tmp/certificate.pem.crt
 aws/function.zip
 
 .vscode/
+
+.vscode/
