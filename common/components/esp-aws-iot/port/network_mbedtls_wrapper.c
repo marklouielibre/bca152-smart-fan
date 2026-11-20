@@ -33,7 +33,6 @@
 #endif
 
 #include "esp_log.h"
-#include "esp_vfs.h"
 
 static const char *TAG = "aws_iot";
 
@@ -205,15 +204,29 @@ IoT_Error_t iot_tls_connect(Network *pNetwork, TLSConnectParams *params) {
 #endif
     if (pNetwork->tlsConnectParams.pDevicePrivateKeyLocation[0] == '/') {
         ESP_LOGD(TAG, "Loading client private key from file...");
+#if MBEDTLS_VERSION_MAJOR >= 3
+        ret = mbedtls_pk_parse_keyfile(&(tlsDataParams->pkey),
+                                       pNetwork->tlsConnectParams.pDevicePrivateKeyLocation,
+                                       "", mbedtls_ctr_drbg_random, &(tlsDataParams->ctr_drbg));
+#else
         ret = mbedtls_pk_parse_keyfile(&(tlsDataParams->pkey),
                                        pNetwork->tlsConnectParams.pDevicePrivateKeyLocation,
                                        "");
+#endif
     } else {
         ESP_LOGD(TAG, "Loading embedded client private key...");
+#if MBEDTLS_VERSION_MAJOR >= 3
+        ret = mbedtls_pk_parse_key(&(tlsDataParams->pkey),
+                                   (const unsigned char *)pNetwork->tlsConnectParams.pDevicePrivateKeyLocation,
+                                   strlen(pNetwork->tlsConnectParams.pDevicePrivateKeyLocation)+1,
+                                   (const unsigned char *)"", 0,
+                                   mbedtls_ctr_drbg_random, &(tlsDataParams->ctr_drbg));
+#else
         ret = mbedtls_pk_parse_key(&(tlsDataParams->pkey),
                                    (const unsigned char *)pNetwork->tlsConnectParams.pDevicePrivateKeyLocation,
                                    strlen(pNetwork->tlsConnectParams.pDevicePrivateKeyLocation)+1,
                                    (const unsigned char *)"", 0);
+#endif
     }
     if(ret != 0) {
         ESP_LOGE(TAG, "failed!  mbedtls_pk_parse_key returned -0x%x while parsing private key", -ret);
@@ -288,12 +301,10 @@ IoT_Error_t iot_tls_connect(Network *pNetwork, TLSConnectParams *params) {
         ESP_LOGE(TAG, "failed! mbedtls_ssl_set_hostname returned %d", ret);
         return SSL_CONNECTION_ERROR;
     }
-    ESP_LOGD(TAG, "SSL state connect : %d ", tlsDataParams->ssl.state);
     mbedtls_ssl_set_bio(&(tlsDataParams->ssl), &(tlsDataParams->server_fd), mbedtls_net_send, NULL,
                         mbedtls_net_recv_timeout);
     ESP_LOGD(TAG, "ok");
 
-    ESP_LOGD(TAG, "SSL state connect : %d ", tlsDataParams->ssl.state);
     ESP_LOGD(TAG, "Performing the SSL/TLS handshake...");
     while((ret = mbedtls_ssl_handshake(&(tlsDataParams->ssl))) != 0) {
         if(ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
@@ -379,11 +390,9 @@ IoT_Error_t iot_tls_read(Network *pNetwork, unsigned char *pMsg, size_t len, Tim
     TLSDataParams *tlsDataParams = &(pNetwork->tlsDataParams);
     mbedtls_ssl_context *ssl = &(tlsDataParams->ssl);
     mbedtls_ssl_config *ssl_conf = &(tlsDataParams->conf);
-    uint32_t read_timeout;
+    uint32_t read_timeout = pNetwork->tlsConnectParams.timeout_ms;
     size_t rxLen = 0;
     int ret;
-
-    read_timeout = ssl_conf->read_timeout;
 
     while (len > 0) {
 

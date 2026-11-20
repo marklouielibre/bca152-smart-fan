@@ -131,7 +131,7 @@ static uint32_t _aws_iot_get_connect_packet_length(IoT_Client_Connect_Params *pC
 		len = len + pConnectParams->passwordLen + 2;
 	}
 
-	FUNC_EXIT_RC(len);
+	FUNC_EXIT_RC((int) len);
 }
 
 /**

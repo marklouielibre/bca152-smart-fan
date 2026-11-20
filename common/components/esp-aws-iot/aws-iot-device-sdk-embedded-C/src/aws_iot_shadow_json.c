@@ -26,11 +26,15 @@ extern "C" {
 
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 #include "aws_iot_json_utils.h"
 #include "aws_iot_log.h"
 #include "aws_iot_shadow_key.h"
 #include "aws_iot_config.h"
+
+/* The local jsmn component exports headers only, so compile its bundled implementation here. */
+#include "../external_libs/jsmn/jsmn.c"
 
 extern char mqttClientID[MAX_SIZE_OF_UNIQUE_CLIENT_ID_BYTES];
 #define AWS_IOT_SHADOW_CLIENT_TOKEN_KEY "{\"clientToken\":\""
@@ -344,13 +348,13 @@ static IoT_Error_t convertDataToString(char *pStringBuffer, size_t maxSizoString
 	}
 
 	if(type == SHADOW_JSON_INT32) {
-		snPrintfReturn = snprintf(pStringBuffer, maxSizoStringBuffer, "%i,", *(int32_t *) (pData));
+		snPrintfReturn = snprintf(pStringBuffer, maxSizoStringBuffer, "%" PRId32 ",", *(int32_t *) (pData));
 	} else if(type == SHADOW_JSON_INT16) {
 		snPrintfReturn = snprintf(pStringBuffer, maxSizoStringBuffer, "%hi,", *(int16_t *) (pData));
 	} else if(type == SHADOW_JSON_INT8) {
 		snPrintfReturn = snprintf(pStringBuffer, maxSizoStringBuffer, "%hhi,", *(int8_t *) (pData));
 	} else if(type == SHADOW_JSON_UINT32) {
-		snPrintfReturn = snprintf(pStringBuffer, maxSizoStringBuffer, "%u,", *(uint32_t *) (pData));
+		snPrintfReturn = snprintf(pStringBuffer, maxSizoStringBuffer, "%" PRIu32 ",", *(uint32_t *) (pData));
 	} else if(type == SHADOW_JSON_UINT16) {
 		snPrintfReturn = snprintf(pStringBuffer, maxSizoStringBuffer, "%hu,", *(uint16_t *) (pData));
 	} else if(type == SHADOW_JSON_UINT8) {
@@ -387,7 +391,7 @@ bool isJsonValidAndParse(const char *pJsonDocument, size_t jsonSize, void *pJson
 							sizeof(jsonTokenStruct) / sizeof(jsonTokenStruct[0]));
 
 	if(tokenCount < 0) {
-		IOT_WARN("Failed to parse JSON: %d\n", tokenCount);
+		IOT_WARN("Failed to parse JSON: %" PRId32 "\n", tokenCount);
 		return false;
 	}
 
@@ -486,7 +490,7 @@ bool isReceivedJsonValid(const char *pJsonDocument, size_t jsonSize ) {
 							sizeof(jsonTokenStruct) / sizeof(jsonTokenStruct[0]));
 
 	if(tokenCount < 0) {
-		IOT_WARN("Failed to parse JSON: %d\n", tokenCount);
+		IOT_WARN("Failed to parse JSON: %" PRId32 "\n", tokenCount);
 		return false;
 	}
 
@@ -508,7 +512,7 @@ bool extractClientToken(const char *pJsonDocument, size_t jsonSize, char *pExtra
 							sizeof(jsonTokenStruct) / sizeof(jsonTokenStruct[0]));
 
 	if(tokenCount < 0) {
-		IOT_WARN("Failed to parse JSON: %d\n", tokenCount);
+		IOT_WARN("Failed to parse JSON: %" PRId32 "\n", tokenCount);
 		return false;
 	}
 

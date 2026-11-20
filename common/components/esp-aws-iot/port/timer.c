@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #include <limits.h>
+#include <inttypes.h>
 
 #include "timer_platform.h"
 #include "freertos/FreeRTOS.h"
@@ -67,7 +68,7 @@ uint32_t left_ms(Timer *timer) {
 
 void countdown_sec(Timer *timer, uint32_t timeout) {
     if (timeout > UINT32_MAX / 1000) {
-        ESP_LOGE(TAG, "timeout is out of range: %ds", timeout);
+        ESP_LOGE(TAG, "timeout is out of range: %" PRIu32 "s", timeout);
     }
     countdown_ms(timer, timeout * 1000);
 }

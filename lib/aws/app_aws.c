@@ -25,7 +25,7 @@ extern const uint8_t private_pem_key_start[] asm("_binary_private_pem_key_start"
 extern const uint8_t private_pem_key_end[] asm("_binary_private_pem_key_end");
 
 static char endpoint_address[] = AWS_ENDPOINT;
-static char client_id[] = AWS_THING_NAME "_cl1";
+static char client_id[] = AWS_THING_NAME;
 static char thing_name[] = AWS_THING_NAME;
 
 static AWS_IoT_Client aws_client;

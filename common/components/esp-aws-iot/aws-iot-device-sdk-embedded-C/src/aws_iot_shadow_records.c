@@ -26,6 +26,7 @@ extern "C" {
 
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "timer_interface.h"
 #include "aws_iot_json_utils.h"
@@ -504,7 +505,7 @@ static void shadow_delta_callback(AWS_IoT_Client *pClient, char *topicName,
 			if(tempVersionNumber > shadowJsonVersionNum) {
 				shadowJsonVersionNum = tempVersionNumber;
 			} else {
-				IOT_WARN("Old Delta Message received - Ignoring rx: %d local: %d", tempVersionNumber,
+				IOT_WARN("Old Delta Message received - Ignoring rx: %" PRIu32 " local: %" PRIu32, tempVersionNumber,
 						 shadowJsonVersionNum);
 				return;
 			}

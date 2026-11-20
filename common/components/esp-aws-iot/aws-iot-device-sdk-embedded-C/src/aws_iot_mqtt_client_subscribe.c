@@ -181,7 +181,7 @@ static uint32_t _aws_iot_mqtt_get_free_message_handler_index(AWS_IoT_Client *pCl
 		}
 	}
 
-	FUNC_EXIT_RC(itr);
+	FUNC_EXIT_RC((int) itr);
 }
 
 /**

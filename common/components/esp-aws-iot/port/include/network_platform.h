@@ -16,10 +16,14 @@
 
 #ifndef IOTSDKC_NETWORK_MBEDTLS_PLATFORM_H_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
+#include "mbedtls/version.h"
+
+#if defined(MBEDTLS_CONFIG_FILE)
 #include MBEDTLS_CONFIG_FILE
+#elif MBEDTLS_VERSION_MAJOR >= 3
+#include "mbedtls/mbedtls_config.h"
+#else
+#include "mbedtls/config.h"
 #endif
 
 #include "mbedtls/platform.h"
@@ -27,7 +31,6 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "mbedtls/certs.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/error.h"
 #include "mbedtls/debug.h"

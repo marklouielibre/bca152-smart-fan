@@ -55,7 +55,7 @@ static void set_relay_task(void *arg)
             if (idx != 0)
             {
                 ESP_LOGI(TAG, "setting idx: %d", idx);
-                vTaskDelay(250 / portTICK_RATE_MS);
+                vTaskDelay(250 / portTICK_PERIOD_MS);
                 gpio_set_level(btn_map[idx].relay_pin, 0);
             }
 
