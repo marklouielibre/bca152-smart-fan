@@ -1,13 +1,5 @@
-.pio
-.vscode/.browse.c_cpp.db*
-.vscode/c_cpp_properties.json
-.vscode/launch.json
-.vscode/ipch
-
-tmp/private.pem.key
-tmp/certificate.pem.crt
-aws/function.zip
-
+﻿build/
+.pio/
 .vscode/
-
-.vscode/
+sdkconfig
+sdkconfig.old
