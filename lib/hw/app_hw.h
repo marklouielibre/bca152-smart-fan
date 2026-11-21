@@ -28,5 +28,6 @@ typedef void (*appbtn_fan_changed_f)(uint8_t);
 void apphw_init(appbtn_fan_changed_f);
 uint8_t apphw_get_state(void);
 bool apphw_set_state(uint8_t);
+bool apphw_turn_on_if_off(void);
 
 #endif

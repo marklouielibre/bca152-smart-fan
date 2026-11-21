@@ -77,6 +77,16 @@ static esp_err_t fixed_speed_handler(httpd_req_t *req)
     return apply_speed(req, speed);
 }
 
+static esp_err_t turn_on_handler(httpd_req_t *req)
+{
+    if (!apphw_turn_on_if_off())
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Unable to update fan state");
+        return ESP_FAIL;
+    }
+    return send_state_response(req, "ok", apphw_get_state());
+}
+
 static esp_err_t status_handler(httpd_req_t *req)
 {
     return send_state_response(req, "ok", apphw_get_state());
@@ -102,6 +112,7 @@ esp_err_t apphttp_start(void)
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = 80;
+    config.max_uri_handlers = 8;
     esp_err_t err = httpd_start(&server, &config);
     if (err != ESP_OK)
     {
@@ -113,7 +124,9 @@ esp_err_t apphttp_start(void)
     if (err == ESP_OK) err = register_uri("/off", HTTP_GET, fixed_speed_handler, (void *)(uintptr_t)0);
     if (err == ESP_OK) err = register_uri("/low", HTTP_GET, fixed_speed_handler, (void *)(uintptr_t)1);
     if (err == ESP_OK) err = register_uri("/med", HTTP_GET, fixed_speed_handler, (void *)(uintptr_t)2);
+    if (err == ESP_OK) err = register_uri("/medium", HTTP_GET, fixed_speed_handler, (void *)(uintptr_t)2);
     if (err == ESP_OK) err = register_uri("/high", HTTP_GET, fixed_speed_handler, (void *)(uintptr_t)3);
+    if (err == ESP_OK) err = register_uri("/on", HTTP_GET, turn_on_handler, NULL);
     if (err == ESP_OK) err = register_uri("/status", HTTP_GET, status_handler, NULL);
 
     if (err != ESP_OK)

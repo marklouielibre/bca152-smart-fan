@@ -15,6 +15,7 @@ typedef struct
 {
     uint8_t idx;
     SemaphoreHandle_t completion;
+    bool only_if_off;
 } relay_request_t;
 
 static btn_map_t btn_map[BTN_CNT] = {
@@ -39,7 +40,8 @@ static void IRAM_ATTR button_handler(void *arg)
     next = now + 100 / portTICK_PERIOD_MS;
     relay_request_t request = {
         .idx = (uint8_t)(uintptr_t)arg,
-        .completion = NULL};
+        .completion = NULL,
+        .only_if_off = false};
     xQueueSendToBackFromISR(idx_queue, &request, NULL);
 }
 
@@ -64,9 +66,10 @@ static void set_relay_task(void *arg)
             ESP_LOGI(TAG, "received idx: %d", idx);
 
             portENTER_CRITICAL(&state_mux);
-            bool unchanged = idx == active_btn_idx;
+            bool should_skip = idx == active_btn_idx ||
+                               (request.only_if_off && active_btn_idx != 0);
             portEXIT_CRITICAL(&state_mux);
-            if (unchanged)
+            if (should_skip)
             {
                 if (request.completion != NULL)
                 {
@@ -154,7 +157,7 @@ uint8_t apphw_get_state(void)
     return btn_map[active_idx].val;
 }
 
-bool apphw_set_state(uint8_t val)
+static bool enqueue_state(uint8_t val, bool only_if_off)
 {
     if (val >= BTN_CNT || idx_queue == NULL)
     {
@@ -169,7 +172,8 @@ bool apphw_set_state(uint8_t val)
 
     relay_request_t request = {
         .idx = val,
-        .completion = completion};
+        .completion = completion,
+        .only_if_off = only_if_off};
     BaseType_t queued = xQueueSendToBack(idx_queue, &request, portMAX_DELAY);
     if (queued != pdTRUE)
     {
@@ -180,4 +184,14 @@ bool apphw_set_state(uint8_t val)
     xSemaphoreTake(completion, portMAX_DELAY);
     vSemaphoreDelete(completion);
     return true;
+}
+
+bool apphw_set_state(uint8_t val)
+{
+    return enqueue_state(val, false);
+}
+
+bool apphw_turn_on_if_off(void)
+{
+    return enqueue_state(1, true);
 }
